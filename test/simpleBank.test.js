@@ -7,6 +7,8 @@ using Truffle version 5.0. You can check this by running "trufffle version"  in 
 installed, you can uninstall the existing version with `npm uninstall -g truffle` and install the latest version (5.0)
 with `npm install -g truffle`.
 
+(not edited)
+
 */
 let catchRevert = require("./exceptionsHelpers.js").catchRevert
 var SimpleBank = artifacts.require("./SimpleBank.sol")
