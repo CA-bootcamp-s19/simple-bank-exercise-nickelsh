@@ -40,37 +40,20 @@ contract SimpleBank {
     //
 
     /* Use the appropriate global variable to get the sender of the transaction */
-    constructor() public {
+    constructor() public payable {
         /* Set the owner to the creator of this contract */
         owner=msg.sender;
-    }
-
-    // Fallback function - Called if other functions don't match call or
-    // sent ether without data
-    // Typically, called when invalid data is sent
-    // Added so ether sent to this contract is reverted if the contract fails
-    // otherwise, the sender's money is transferred to contract
-    function () external payable {
-        revert();
-    }
-
-    /// @notice Get balance
-    /// @return The balance of the user
-    // A SPECIAL KEYWORD prevents function from editing state variables;
-    // allows function to run locally/off blockchain
-    function getBalance() public returns (uint) {
-        /* Get the balance of the sender of this transaction */
-        return balances [msg.sender];
+      
     }
 
     /// @notice Enroll a customer with the bank
     /// @return The users enrolled status
     // Emit the appropriate event
     function enroll() public returns (bool){
-            if (enrolled [msg.sender]==true) return true;
+            enrolled [msg.sender]=true;
             emit LogEnrolled(msg.sender);
-            enrolled [msg.sender]=true ;           
-    }
+            return enrolled [msg.sender] ;          
+            }
 
     /// @notice Deposit ether into bank
     /// @return The balance of the user after the deposit is made
@@ -81,13 +64,11 @@ contract SimpleBank {
     function deposit() public payable returns (uint) {
         /* Add the amount to the user's balance, call the event associated with a deposit,
           then return the balance of the user */
-        require(enrolled[msg.sender] == true); 
-        uint amount = msg.value;
-        balances[msg.sender] += amount;
-        emit LogDepositMade(msg.sender, amount);
+        require(enrolled[msg.sender] ==true, "User not enrolled, please check!" ); 
+        balances[msg.sender] = balances[msg.sender] + msg.value;
+        emit LogDepositMade(msg.sender , msg.value);
         return balances[msg.sender];
-
-    }
+        }
 
     /// @notice Withdraw ether from bank
     /// @dev This does not return any excess ether sent to it
@@ -99,10 +80,34 @@ contract SimpleBank {
            Subtract the amount from the sender's balance, and try to send that amount of ether
            to the user attempting to withdraw. 
            return the user's balance.*/
-        require(balances[msg.sender] >= withdrawAmount);
+        require(enrolled[msg.sender] ==true, "User not enrolled, please check!" );
+        if(balances[msg.sender] >= withdrawAmount){
         balances[msg.sender] -= withdrawAmount;
+        msg.sender.transfer(withdrawAmount);
         emit LogWithdrawal(msg.sender, withdrawAmount, balances[msg.sender]);
-        return balances[msg.sender];
+        } 
+        else{
+        revert();
+        }
+        }
+/// @notice Get balance
+    /// @return The balance of the user
+    // A SPECIAL KEYWORD prevents function from editing state variables;
+    // allows function to run locally/off blockchain
+    function getBalance() public view returns (uint) {
+        /* Get the balance of the sender of this transaction */
+        return balances [msg.sender];
     }
+
+// Fallback function - Called if other functions don't match call or
+    // sent ether without data
+    // Typically, called when invalid data is sent
+    // Added so ether sent to this contract is reverted if the contract fails
+    // otherwise, the sender's money is transferred to contract
+    function () external payable {
+        revert();
+    }
+
+
 
 }
